@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Форма користувача</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #ffffff;
+        display: flex;
+        justify-content: center;
+        padding-top: 30px;
+    }
+
+    .container {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        width: 400px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    h2 {
+        text-align: center;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        box-sizing: border-box;
+    }
+
+    button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        cursor: pointer;
+    }
+
+    .success {
+        color: rgb(42, 192, 42);
+        margin-top: 10px;
+    }
+
+    .error {
+        color: rgb(102, 1, 1);
+        margin-top: 10px;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Реєстрація</h2>
+
+    <input type="text" id="name" placeholder="Ім'я">
+
+    <input type="email" id="email" placeholder="Email">
+
+    <input type="tel" id="phone" placeholder="Телефон">
+
+    <input type="password" id="password" placeholder="Пароль">
+
+    <button id="registerBtn">Зареєструватися</button>
+
+    <hr>
+
+    <h2>Авторизація</h2>
+
+    <input type="email" id="loginEmail" placeholder="Email">
+
+    <input type="password" id="loginPassword" placeholder="Пароль">
+
+    <button id="loginBtn">Увійти</button>
+
+    <div id="editSection" class="hidden">
+        <h3>Редагування профілю</h3>
+
+        <input type="text" id="editName" placeholder="Нове ім'я">
+
+        <input type="tel" id="editPhone" placeholder="Новий телефон">
+
+        <button id="saveChangesBtn">
+            Зберегти зміни
+        </button>
+    </div>
+
+    <button id="clearBtn">
+        Очистити всі дані
+    </button>
+
+    <p id="message"></p>
+
+</div>
+
+<script>
+
+const nameInput = document.getElementById("name");
+const emailInput = document.getElementById("email");
+const phoneInput = document.getElementById("phone");
+const passwordInput = document.getElementById("password");
+
+const loginEmail = document.getElementById("loginEmail");
+const loginPassword = document.getElementById("loginPassword");
+
+const editName = document.getElementById("editName");
+const editPhone = document.getElementById("editPhone");
+
+const message = document.getElementById("message");
+const editSection = document.getElementById("editSection");
+
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const savedUser =
+        JSON.parse(localStorage.getItem("user"));
+
+    if(savedUser){
+
+        nameInput.value = savedUser.name || "";
+        emailInput.value = savedUser.email || "";
+        phoneInput.value = savedUser.phone || "";
+        passwordInput.value = savedUser.password || "";
+    }
+});
+
+
+[nameInput, emailInput, phoneInput, passwordInput]
+.forEach(input => {
+
+    input.addEventListener("input", saveFormData);
+
+});
+
+
+function saveFormData(){
+
+    const user = {
+        name: nameInput.value,
+        email: emailInput.value,
+        phone: phoneInput.value,
+        password: passwordInput.value
+    };
+
+    localStorage.setItem(
+        "user",
+        JSON.stringify(user)
+    );
+}
+
+
+document
+.getElementById("registerBtn")
+.addEventListener("click", () => {
+
+    const name = nameInput.value.trim();
+    const email = emailInput.value.trim();
+    const phone = phoneInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if(
+        !name ||
+        !email ||
+        !phone ||
+        !password
+    ){
+        showMessage(
+            "Заповніть усі поля!",
+            true
+        );
+        return;
+    }
+
+    const emailPattern =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if(!emailPattern.test(email)){
+        showMessage(
+            "Некоректний email!",
+            true
+        );
+        return;
+    }
+
+    const user = {
+        name,
+        email,
+        phone,
+        password
+    };
+
+    localStorage.setItem(
+        "user",
+        JSON.stringify(user)
+    );
+
+    showMessage(
+        "Реєстрація успішна!"
+    );
+});
+
+
+document
+.getElementById("loginBtn")
+.addEventListener("click", () => {
+
+    const user =
+        JSON.parse(localStorage.getItem("user"));
+
+    if(!user){
+        showMessage(
+            "Користувача не знайдено!",
+            true
+        );
+        return;
+    }
+
+    if(
+        loginEmail.value === user.email &&
+        loginPassword.value === user.password
+    ){
+
+        showMessage(
+            "Вхід успішний!"
+        );
+
+        editSection.classList.remove("hidden");
+
+        editName.value = user.name;
+        editPhone.value = user.phone;
+
+    }else{
+
+        showMessage(
+            "Невірний email або пароль!",
+            true
+        );
+    }
+});
+
+
+document
+.getElementById("saveChangesBtn")
+.addEventListener("click", () => {
+
+    const user =
+        JSON.parse(localStorage.getItem("user"));
+
+    user.name = editName.value;
+    user.phone = editPhone.value;
+
+    localStorage.setItem(
+        "user",
+        JSON.stringify(user)
+    );
+
+    showMessage(
+        "Дані оновлено!"
+    );
+
+    nameInput.value = user.name;
+    phoneInput.value = user.phone;
+});
+
+
+document
+.getElementById("clearBtn")
+.addEventListener("click", () => {
+
+    localStorage.removeItem("user");
+
+    location.reload();
+});
+
+
+function showMessage(text, isError = false){
+
+    message.textContent = text;
+
+    message.className =
+        isError ? "error" : "success";
+}
+
+</script>
+
+</body>
+</html>
