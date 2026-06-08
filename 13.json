@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "task": "Зробити домашнє завдання",
+    "completed": false
+  },
+  {
+    "id": 2,
+    "task": "Вивчити PHP API",
+    "completed": true
+  }
+]
